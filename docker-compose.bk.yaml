@@ -1,0 +1,46 @@
+version: "3.8"
+
+services:
+  beszel:
+    image: henrygd/beszel
+    container_name: beszel
+    restart: unless-stopped
+    environment:
+      - APP_URL=http://localhost:8090
+      - BREZEL_TIMEZONE="Asia/Dhaka"
+    ports:
+      - 8090:8090
+    volumes:
+      - ./beszel_data:/beszel_data
+
+    networks:
+      - brezel-net
+
+  beszel-agent:
+    image: henrygd/beszel-agent
+    container_name: beszel-agent
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./beszel_agent_data:/var/lib/beszel-agent
+      # monitor other disks / partitions by mounting a folder in /extra-filesystems
+      # - /mnt/disk/.beszel:/extra-filesystems/sda1:ro
+    environment:
+      LISTEN: 45876
+      KEY: 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPILjMFf/zcqu0ne1lmMjc91WFVEvSjA6gsQGekExhXW'
+      TOKEN: 82e583c4-2fbc-4882-9799-5a0339d54d9c
+      HUB_URL: http://localhost:8080
+
+  # snmp-proxy:
+  #   image: brezel/snmp-proxy:latest
+  #   container_name: brezel-snmp
+  #   restart: unless-stopped
+  #   ports:
+  #     - "161:161/udp"
+  #   networks:
+  #     - brezel-net
+ 
+networks:
+  brezel-net:
+    driver: bridge
